@@ -1,4 +1,5 @@
 import os
+import base64
 import requests
 from openai import OpenAI
 from django.core.management.base import BaseCommand
@@ -51,23 +52,20 @@ class Command(BaseCommand):
 
         # ✅ Generate image with OpenAI
         response = client.images.generate(
-            model="dall-e-2",
+            model="gpt-image-1",
             prompt=prompt,
-            size="256x256",
-            quality="standard",
+            size="1024x1024",
+            quality="low",
             n=1,
         )
-        image_url = response.data[0].url
-
+        image_data = base64.b64decode(response.data[0].b64_json)
         # ✅ Prepare the filename and full save path
         image_filename = f"m_{movie_title}.png"
         image_path_full = os.path.join(save_folder, image_filename)
 
         # ✅ Download the image
-        image_response = requests.get(image_url)
-        image_response.raise_for_status()
         with open(image_path_full, 'wb') as f:
-            f.write(image_response.content)
+            f.write(image_data)
 
         # ✅ Return relative path to be saved in the DB
         return os.path.join('movie/images', image_filename)
